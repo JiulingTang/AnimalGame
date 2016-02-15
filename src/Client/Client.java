@@ -46,20 +46,29 @@ public class Client {
 				Query q=new Query();
 				q=(Query)xt.fromXML(xml);
 				String input = null;
-				do
+				if (q.getList().size()<2)
 				{
 					System.out.println(q.get());
-					try 	{
-						input=bf.readLine();
-					} 	catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}while (input.equals("Yes")||input.equals("no"));
-				Ans ans=new Ans();
-				ans.set(input.equals("Yes")?true:false);
-				ans.setList(q.getList());
-				
+					break;
+				}
+				else
+				{
+					do
+					{
+						System.out.println(q.get());
+						try 	{
+							input=bf.readLine();
+						} 	catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}while (!input.equals("Yes")&&(!input.equals("No")));
+					Ans ans=new Ans();
+					ans.setS(q.get());
+					ans.set(input.equals("Yes")?true:false);
+					ans.setList(q.getList());
+					xml=HTTP.post(url, xt.toXML(ans));
+				}
 			}
 		}
 			

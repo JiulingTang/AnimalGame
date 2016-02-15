@@ -13,6 +13,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.lang.Math;
 
 import data.*;
 
@@ -50,10 +51,14 @@ public class Server extends HttpServlet {
     	XStream xt = new XStream(new DomDriver());
 		xt.alias("animals", Animals.class);
 		xt.alias("animal", Animal.class);
+		xt.alias("ques", ArrayList.class);
 		Animal cat = new Animal();
+		ques=new ArrayList<String>();
 		File f=new File(this.getServletContext().getRealPath("/")+"animals.xml");
+		File f2=new File (this.getServletContext().getRealPath("/")+"questions.xml");
 		//System.out.println(f.getAbsolutePath());
 		try {
+			ques=(ArrayList<String>)xt.fromXML(f2);
 			anis=(Animals)xt.fromXML(f);
 			//System.out.println(anis.list.get(0).toString());
 		} catch (Exception e) {
@@ -81,16 +86,84 @@ public class Server extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		XStream xt=new XStream(new DomDriver());
+		xt.alias("ans",Ans.class );
+		InputStreamReader rd=new InputStreamReader(request.getInputStream());
+		BufferedReader bf=new BufferedReader(rd);
+		String xml="";
+		String s=null;
+		while ((s=bf.readLine())!=null)
+		{
+			xml+=s+"\n";
+		}
+		Ans ans=new Ans();
+		ans=(Ans)xt.fromXML(xml);
+		String qs=ans.getS();
+		int qid = 0;
+		for (int i=0;i<ques.size();i++)
+		{
+			if (ques.get(i).equals(qs))
+			{
+				qid=i;
+			}
+		}
+		ArrayList<Integer> list=new ArrayList<Integer>(ans.getList());
+		ArrayList<Integer> nList=new ArrayList<Integer>();		
+		for (int i=0;i<list.size();i++)
+		{
+			int aid=list.get(i);
+			if (anis.list.get(aid).matches.get(qid).equals(ans.get()))
+			{
+				nList.add(aid);
+			}
+		}
+		System.out.println("post");
+		doRes(response,nList);
 	}
 	
 	private void doRes(HttpServletResponse response,ArrayList<Integer> list)
 	{
+	
 		XStream xt=new XStream(new DomDriver());
 		try {
 			Query q=new Query();
 			xt.alias("query", Query.class);
-			q.set("The animal lives in sky?");
-			q.setList(list);
+			if (list.size()==1)
+			{
+				int aid=list.get(0);
+				q.set("The animal is "+anis.list.get(aid).name);
+				q.setList(list);
+			}
+			else if (list.size()==0)
+			{
+				q.set("I don't know the animal");
+				q.setList(new ArrayList<Integer>());
+			}
+			else
+			{
+				int c=1000000;
+				int b = 0;
+				for (int i=0;i<ques.size();i++)
+				{
+					int z1=0;
+					int z2=0;
+					for (int j=0;j<list.size();j++)
+					{
+						int aid=list.get(j);
+						if (anis.list.get(aid).matches.get(i))
+							z1++;
+						else
+							z2++;
+					}
+					if (Math.abs(z1-z2)<c)
+					{
+						b=i;
+						c=Math.abs(z1-z2);
+					}
+				}
+				q.set(ques.get(b));
+				q.setList(list);
+			}
 			response.setContentType("text/xml");
 			response.getWriter().println(xt.toXML(q));
 		} catch (IOException e) {
