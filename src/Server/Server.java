@@ -96,6 +96,7 @@ public class Server extends HttpServlet {
 		{
 			xml+=s+"\n";
 		}
+		System.out.println(xml);
 		Ans ans=new Ans();
 		ans=(Ans)xt.fromXML(xml);
 		String qs=ans.getS();
@@ -166,6 +167,13 @@ public class Server extends HttpServlet {
 			}
 			response.setContentType("text/xml");
 			response.getWriter().println(xt.toXML(q));
+			try {
+				FileWriter so=new FileWriter(new File(this.getServletContext().getRealPath("/")+"sampeQuery.xml"));
+				xt.toXML(q,so);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

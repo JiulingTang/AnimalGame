@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import data.*;
 
 public class Client {
-	public static String url="http://localhost:8080/AnimalGame/Server";
+	public String url;
 	public 	Client()
 	{
 		XStream xt = new XStream(new DomDriver());
@@ -25,6 +27,15 @@ public class Client {
 		xt.alias("ans", Ans.class);
 		String inp = null;
 		BufferedReader bf=null;
+
+		System.out.print("Server url: ");
+    	
+    	try {
+			url=new BufferedReader(new InputStreamReader(System.in)).readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		do
 		{
 			System.out.println("Start Game? Yes or No\n");
@@ -68,6 +79,14 @@ public class Client {
 					ans.set(input.equals("Yes")?true:false);
 					ans.setList(q.getList());
 					xml=HTTP.post(url, xt.toXML(ans));
+					try {
+						FileWriter so=new FileWriter(new File("sampeAns.xml"));
+						xt.toXML(ans, so);;
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 				}
 			}
 		}
